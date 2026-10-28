@@ -145,11 +145,23 @@ class ChatbotPlatform extends HTMLElement {
     this.setBusy(true); this.showError("");
     try {
       if (!this.apiUrl) throw new Error("Atendimento ainda não configurado.");
-      if (!this.legacy) { const appearance=await this.fetchJson(`${this.apiUrl}/v1/widget/appearance`); this.setAppearance(appearance); await this.bootstrap(); }
+      if (!this.legacy) {
+        try {
+          const appearance=await this.fetchJson(`${this.apiUrl}/v1/widget/appearance`);
+          this.setAppearance(appearance);
+        } catch(e) {
+          console.warn("Aparência padrão utilizada:", e);
+        }
+        await this.bootstrap();
+      }
       this.messages.replaceChildren(); this.addMessage("assistant",this.welcome);
       if (this.sessionId) {
-        const history=await this.request(`/v1/sessions/${this.sessionId}/messages`);
-        for (const message of history) this.addMessage(message.role,message.content,message.citations||[]);
+        try {
+          const history=await this.request(`/v1/sessions/${this.sessionId}/messages`);
+          for (const message of history) this.addMessage(message.role,message.content,message.citations||[]);
+        } catch(e) {
+          console.warn("Histórico não carregado:", e);
+        }
       }
       this.ready=true;
     } catch(error) { this.messages.replaceChildren(); this.addMessage("assistant",this.failureMessage(error)); this.ready=false; }

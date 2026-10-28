@@ -2,7 +2,8 @@ from datetime import datetime, timezone, timedelta
 import uuid
 from dataclasses import asdict
 
-from fastapi import APIRouter, Depends, File, Header, HTTPException, UploadFile
+from urllib.parse import urlparse
+from fastapi import APIRouter, Depends, File, Header, HTTPException, Request, UploadFile
 from pydantic import BaseModel, Field, ConfigDict
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -431,10 +432,23 @@ class BootstrapRequest(BaseModel):
     resume_token: str | None = Field(default=None, max_length=4096)
 
 
+def resolve_request_origin(request: Request, origin: str | None) -> str | None:
+    if origin:
+        return origin
+    referer = request.headers.get("referer")
+    if referer:
+        parsed = urlparse(referer)
+        if parsed.scheme and parsed.netloc:
+            return f"{parsed.scheme}://{parsed.netloc}"
+    return None
+
+
 @public_router.post("/bootstrap")
-def institution_bootstrap(payload: BootstrapRequest, origin: str | None = Header(default=None), database: Session = Depends(get_database)):
-    if not origin or origin not in settings.allowed_origins_list:
+def institution_bootstrap(request: Request, payload: BootstrapRequest, origin: str | None = Header(default=None), database: Session = Depends(get_database)):
+    resolved = resolve_request_origin(request, origin)
+    if not resolved or resolved not in settings.allowed_origins_list:
         raise HTTPException(403, "Este site não está autorizado a usar o assistente")
+    origin = resolved
     config, assistant = binding(database)
     key = database.get(ApiKey, config.api_key_id)
     environment = database.get(Environment, assistant.environment_id)
@@ -465,8 +479,9 @@ def institution_bootstrap(payload: BootstrapRequest, origin: str | None = Header
 
 
 @public_router.get("/appearance")
-def institution_appearance(origin: str | None = Header(default=None), database: Session = Depends(get_database)):
-    if not origin or origin not in settings.allowed_origins_list:
+def institution_appearance(request: Request, origin: str | None = Header(default=None), database: Session = Depends(get_database)):
+    resolved = resolve_request_origin(request, origin)
+    if resolved and resolved not in settings.allowed_origins_list:
         raise HTTPException(403, "Este site não está autorizado a usar o assistente")
     config, assistant = binding(database)
     return {"name": assistant.name, "welcome_message": config.welcome_message, "accent_color": config.accent_color,
