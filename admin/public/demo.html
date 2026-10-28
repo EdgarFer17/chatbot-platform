@@ -1,0 +1,8 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FAFIC — teste do chatbot</title><style>body{font:16px/1.6 Arial,sans-serif;background:#f3f5f9;color:#20334f;margin:0;padding:60px 24px}main{max-width:720px;margin:auto}h1{font-weight:500;font-size:40px}small{color:#61718a}a{color:#173b73}</style></head><body><main><small>FAFIC · TESTE DO CHAT</small><h1>Converse com o assistente.</h1><p>Use o botão no canto inferior direito para perguntar sobre os documentos publicados.</p><p><a href="/documentos">Enviar e publicar documentos</a> · <a href="/">Ligar ou desligar o chatbot</a></p></main><script type="module">
+import "./chatbot-widget.js";
+const local = ["localhost", "127.0.0.1"].includes(location.hostname);
+const chat = document.createElement("chatbot-platform");
+chat.setAttribute("api-url", local ? "http://localhost:8010" : location.origin);
+document.body.append(chat);
+if (local) document.querySelectorAll("main a").forEach(link => { link.href = "http://localhost:3000" + new URL(link.href).pathname; });
+</script></body></html>

@@ -1,0 +1,79 @@
+services:
+  database:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_DB: chatbot_platform
+      POSTGRES_USER: chatbot
+      POSTGRES_PASSWORD: local-development-only
+    volumes:
+      - chatbot_platform_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chatbot -d chatbot_platform"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      APP_ENV: development
+      DATABASE_URL: postgresql+psycopg://chatbot:local-development-only@database:5432/chatbot_platform
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?Configure JWT_SECRET_KEY no arquivo .env}
+      ADMIN_MASTER_KEY: ${ADMIN_MASTER_KEY:?Configure ADMIN_MASTER_KEY no arquivo .env}
+      LLM_PROVIDER: ${LLM_PROVIDER:-groq}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-20b}
+      LLM_MAX_OUTPUT_TOKENS: ${LLM_MAX_OUTPUT_TOKENS:-700}
+      LLM_TIMEOUT_SECONDS: ${LLM_TIMEOUT_SECONDS:-35}
+      LLM_REASONING_EFFORT: ${LLM_REASONING_EFFORT:-low}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:3005,http://localhost:4173}
+      CONVERSATION_CONTEXT_MESSAGES: 6
+      CONVERSATION_CONTEXT_CHARACTERS: 8000
+    ports:
+      - "8010:8000"
+    depends_on:
+      database:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  worker:
+    build:
+      context: ./backend
+    command: ["python", "-m", "app.worker"]
+    environment:
+      APP_ENV: development
+      DATABASE_URL: postgresql+psycopg://chatbot:local-development-only@database:5432/chatbot_platform
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?Configure JWT_SECRET_KEY no arquivo .env}
+      ADMIN_MASTER_KEY: ${ADMIN_MASTER_KEY:?Configure ADMIN_MASTER_KEY no arquivo .env}
+      LLM_PROVIDER: ${LLM_PROVIDER:-groq}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-20b}
+    depends_on:
+      database:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+
+  admin:
+    build:
+      context: ./admin
+    environment:
+      PLATFORM_API_URL: http://backend:8000
+      PLATFORM_PUBLIC_API_URL: ${PLATFORM_PUBLIC_API_URL:-http://localhost:8010}
+      WIDGET_PUBLIC_URL: ${WIDGET_PUBLIC_URL:-http://localhost:3005}
+      ADMIN_MASTER_KEY: ${ADMIN_MASTER_KEY:?Configure ADMIN_MASTER_KEY no arquivo .env}
+      ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH:-}
+      ADMIN_SESSION_SECRET: ${ADMIN_SESSION_SECRET:?Configure ADMIN_SESSION_SECRET no arquivo .env}
+      ADMIN_COOKIE_SECURE: ${ADMIN_COOKIE_SECURE:-false}
+    ports:
+      - "${ADMIN_PORT:-3005}:3000"
+    depends_on:
+      - backend
+
+volumes:
+  chatbot_platform_postgres:

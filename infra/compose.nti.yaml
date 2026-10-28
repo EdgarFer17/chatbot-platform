@@ -1,0 +1,8 @@
+# Use after compose.production.yaml. Requires Compose >= 2.24.4.
+# NTI terminates public HTTPS; restrict access to this private port in its firewall.
+services:
+  proxy:
+    ports: !override
+      - "10.0.0.248:8090:80"
+    volumes:
+      - ./Caddyfile.nti:/etc/caddy/Caddyfile:ro

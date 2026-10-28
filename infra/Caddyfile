@@ -1,0 +1,7 @@
+{$PANEL_DOMAIN} {
+    reverse_proxy admin:3000
+}
+
+{$API_DOMAIN} {
+    reverse_proxy backend:8000
+}

@@ -1,0 +1,283 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-09-01T12:00:00.000Z",
+  "__export_source": "chatbot-platform",
+  "resources": [
+    {
+      "_id": "wrk_chatbot_platform",
+      "_type": "workspace",
+      "name": "Chatbot Platform",
+      "description": "Testes da API administrativa multiempresa. Execute na ordem apresentada."
+    },
+    {
+      "_id": "env_chatbot_platform",
+      "_type": "environment",
+      "parentId": "wrk_chatbot_platform",
+      "name": "Base Environment",
+      "data": {
+        "base_url": "http://127.0.0.1:8010",
+        "admin_key": "local-admin-secret-change-before-production",
+        "tenant_id": "COLE_O_ID_DO_CLIENTE",
+        "environment_id": "COLE_O_ID_DO_AMBIENTE",
+        "assistant_id": "COLE_O_ID_DO_ASSISTENTE",
+        "api_key_id": "COLE_O_ID_DA_CHAVE",
+        "api_key": "COLE_A_CHAVE_CBP_COMPLETA",
+        "session_id": "COLE_O_ID_DA_SESSAO",
+        "document_id": "COLE_O_ID_DO_DOCUMENTO",
+        "source_id": "COLE_O_ID_DA_FONTE"
+      }
+    },
+    {
+      "_id": "fld_health",
+      "_type": "request_group",
+      "parentId": "wrk_chatbot_platform",
+      "name": "00 - Saúde"
+    },
+    {
+      "_id": "req_health",
+      "_type": "request",
+      "parentId": "fld_health",
+      "name": "Verificar API",
+      "method": "GET",
+      "url": "{{ _.base_url }}/health",
+      "headers": []
+    },
+    {
+      "_id": "fld_tenants",
+      "_type": "request_group",
+      "parentId": "wrk_chatbot_platform",
+      "name": "01 - Clientes"
+    },
+    {
+      "_id": "req_create_tenant",
+      "_type": "request",
+      "parentId": "fld_tenants",
+      "name": "Criar FAFIC",
+      "method": "POST",
+      "url": "{{ _.base_url }}/v1/admin/tenants",
+      "headers": [{"name": "Content-Type", "value": "application/json"}, {"name": "X-Admin-Key", "value": "{{ _.admin_key }}"}],
+      "body": {"mimeType": "application/json", "text": "{\n  \"name\": \"FAFIC\",\n  \"slug\": \"fafic\"\n}"}
+    },
+    {
+      "_id": "req_list_tenants",
+      "_type": "request",
+      "parentId": "fld_tenants",
+      "name": "Listar clientes",
+      "method": "GET",
+      "url": "{{ _.base_url }}/v1/admin/tenants",
+      "headers": [{"name": "X-Admin-Key", "value": "{{ _.admin_key }}"}]
+    },
+    {
+      "_id": "fld_environments",
+      "_type": "request_group",
+      "parentId": "wrk_chatbot_platform",
+      "name": "02 - Ambientes"
+    },
+    {
+      "_id": "req_create_environment",
+      "_type": "request",
+      "parentId": "fld_environments",
+      "name": "Criar homologação",
+      "method": "POST",
+      "url": "{{ _.base_url }}/v1/admin/tenants/{{ _.tenant_id }}/environments",
+      "headers": [{"name": "Content-Type", "value": "application/json"}, {"name": "X-Admin-Key", "value": "{{ _.admin_key }}"}],
+      "body": {"mimeType": "application/json", "text": "{\n  \"name\": \"Homologação\",\n  \"slug\": \"sandbox\",\n  \"kind\": \"sandbox\"\n}"}
+    },
+    {
+      "_id": "req_list_environments",
+      "_type": "request",
+      "parentId": "fld_environments",
+      "name": "Listar ambientes",
+      "method": "GET",
+      "url": "{{ _.base_url }}/v1/admin/tenants/{{ _.tenant_id }}/environments",
+      "headers": [{"name": "X-Admin-Key", "value": "{{ _.admin_key }}"}]
+    },
+    {
+      "_id": "fld_assistants",
+      "_type": "request_group",
+      "parentId": "wrk_chatbot_platform",
+      "name": "03 - Assistentes"
+    },
+    {
+      "_id": "req_create_assistant",
+      "_type": "request",
+      "parentId": "fld_assistants",
+      "name": "Criar assistente FAFIC",
+      "method": "POST",
+      "url": "{{ _.base_url }}/v1/admin/tenants/{{ _.tenant_id }}/environments/{{ _.environment_id }}/assistants",
+      "headers": [{"name": "Content-Type", "value": "application/json"}, {"name": "X-Admin-Key", "value": "{{ _.admin_key }}"}],
+      "body": {"mimeType": "application/json", "text": "{\n  \"name\": \"Assistente FAFIC\",\n  \"slug\": \"atendimento\",\n  \"system_prompt\": \"Responda exclusivamente com base no conhecimento institucional publicado.\"\n}"}
+    },
+    {
+      "_id": "req_list_assistants",
+      "_type": "request",
+      "parentId": "fld_assistants",
+      "name": "Listar assistentes",
+      "method": "GET",
+      "url": "{{ _.base_url }}/v1/admin/tenants/{{ _.tenant_id }}/environments/{{ _.environment_id }}/assistants",
+      "headers": [{"name": "X-Admin-Key", "value": "{{ _.admin_key }}"}]
+    },
+    {
+      "_id": "fld_keys",
+      "_type": "request_group",
+      "parentId": "wrk_chatbot_platform",
+      "name": "04 - Chaves de API"
+    },
+    {
+      "_id": "req_create_key",
+      "_type": "request",
+      "parentId": "fld_keys",
+      "name": "Criar chave do site",
+      "method": "POST",
+      "url": "{{ _.base_url }}/v1/admin/tenants/{{ _.tenant_id }}/environments/{{ _.environment_id }}/api-keys",
+      "headers": [{"name": "Content-Type", "value": "application/json"}, {"name": "X-Admin-Key", "value": "{{ _.admin_key }}"}],
+      "body": {"mimeType": "application/json", "text": "{\n  \"name\": \"Site institucional FAFIC\"\n}"}
+    },
+    {
+      "_id": "req_list_keys",
+      "_type": "request",
+      "parentId": "fld_keys",
+      "name": "Listar chaves sem segredo",
+      "method": "GET",
+      "url": "{{ _.base_url }}/v1/admin/tenants/{{ _.tenant_id }}/environments/{{ _.environment_id }}/api-keys",
+      "headers": [{"name": "X-Admin-Key", "value": "{{ _.admin_key }}"}]
+    },
+    {
+      "_id": "req_revoke_key",
+      "_type": "request",
+      "parentId": "fld_keys",
+      "name": "Revogar chave",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}/v1/admin/tenants/{{ _.tenant_id }}/environments/{{ _.environment_id }}/api-keys/{{ _.api_key_id }}",
+      "headers": [{"name": "X-Admin-Key", "value": "{{ _.admin_key }}"}]
+    },
+    {
+      "_id": "fld_conversations",
+      "_type": "request_group",
+      "parentId": "wrk_chatbot_platform",
+      "name": "05 - Conversas públicas"
+    },
+    {
+      "_id": "req_create_session",
+      "_type": "request",
+      "parentId": "fld_conversations",
+      "name": "Criar sessão",
+      "method": "POST",
+      "url": "{{ _.base_url }}/v1/sessions",
+      "headers": [{"name": "Content-Type", "value": "application/json"}, {"name": "Authorization", "value": "Bearer {{ _.api_key }}"}],
+      "body": {"mimeType": "application/json", "text": "{\n  \"assistant_id\": \"{{ _.assistant_id }}\",\n  \"external_user_id\": \"aluno-teste-001\"\n}"}
+    },
+    {
+      "_id": "req_send_message",
+      "_type": "request",
+      "parentId": "fld_conversations",
+      "name": "Enviar mensagem",
+      "method": "POST",
+      "url": "{{ _.base_url }}/v1/sessions/{{ _.session_id }}/messages",
+      "headers": [{"name": "Content-Type", "value": "application/json"}, {"name": "Authorization", "value": "Bearer {{ _.api_key }}"}],
+      "body": {"mimeType": "application/json", "text": "{\n  \"content\": \"Como faço minha matrícula?\"\n}"}
+    },
+    {
+      "_id": "req_list_messages",
+      "_type": "request",
+      "parentId": "fld_conversations",
+      "name": "Consultar histórico",
+      "method": "GET",
+      "url": "{{ _.base_url }}/v1/sessions/{{ _.session_id }}/messages",
+      "headers": [{"name": "Authorization", "value": "Bearer {{ _.api_key }}"}]
+    },
+    {
+      "_id": "req_close_session",
+      "_type": "request",
+      "parentId": "fld_conversations",
+      "name": "Encerrar sessão",
+      "method": "POST",
+      "url": "{{ _.base_url }}/v1/sessions/{{ _.session_id }}/close",
+      "headers": [{"name": "Authorization", "value": "Bearer {{ _.api_key }}"}]
+    },
+    {
+      "_id": "fld_knowledge",
+      "_type": "request_group",
+      "parentId": "wrk_chatbot_platform",
+      "name": "06 - Conhecimento"
+    },
+    {
+      "_id": "req_list_knowledge",
+      "_type": "request",
+      "parentId": "fld_knowledge",
+      "name": "Listar documentos",
+      "method": "GET",
+      "url": "{{ _.base_url }}/v1/admin/tenants/{{ _.tenant_id }}/environments/{{ _.environment_id }}/assistants/{{ _.assistant_id }}/knowledge",
+      "headers": [{"name": "X-Admin-Key", "value": "{{ _.admin_key }}"}]
+    },
+    {
+      "_id": "req_create_knowledge",
+      "_type": "request",
+      "parentId": "fld_knowledge",
+      "name": "Criar conteúdo manual",
+      "method": "POST",
+      "url": "{{ _.base_url }}/v1/admin/tenants/{{ _.tenant_id }}/environments/{{ _.environment_id }}/assistants/{{ _.assistant_id }}/knowledge",
+      "headers": [{"name": "Content-Type", "value": "application/json"}, {"name": "X-Admin-Key", "value": "{{ _.admin_key }}"}],
+      "body": {"mimeType": "application/json", "text": "{\n  \"title\": \"Documento de homologação\",\n  \"content\": \"Conteúdo institucional revisado para validar o contrato público do assistente.\"\n}"}
+    },
+    {
+      "_id": "req_publish_knowledge",
+      "_type": "request",
+      "parentId": "fld_knowledge",
+      "name": "Publicar documento",
+      "method": "POST",
+      "url": "{{ _.base_url }}/v1/admin/tenants/{{ _.tenant_id }}/environments/{{ _.environment_id }}/assistants/{{ _.assistant_id }}/knowledge/{{ _.document_id }}/publish",
+      "headers": [{"name": "X-Admin-Key", "value": "{{ _.admin_key }}"}]
+    },
+    {
+      "_id": "fld_governance",
+      "_type": "request_group",
+      "parentId": "wrk_chatbot_platform",
+      "name": "07 - Uso e auditoria"
+    },
+    {
+      "_id": "req_usage",
+      "_type": "request",
+      "parentId": "fld_governance",
+      "name": "Consultar consumo mensal",
+      "method": "GET",
+      "url": "{{ _.base_url }}/v1/admin/tenants/{{ _.tenant_id }}/usage?environment_id={{ _.environment_id }}",
+      "headers": [{"name": "X-Admin-Key", "value": "{{ _.admin_key }}"}]
+    },
+    {
+      "_id": "req_update_quota",
+      "_type": "request",
+      "parentId": "fld_governance",
+      "name": "Atualizar cota mensal",
+      "method": "PATCH",
+      "url": "{{ _.base_url }}/v1/admin/tenants/{{ _.tenant_id }}/quota",
+      "headers": [{"name": "Content-Type", "value": "application/json"}, {"name": "X-Admin-Key", "value": "{{ _.admin_key }}"}],
+      "body": {"mimeType": "application/json", "text": "{\n  \"monthly_message_limit\": 1000\n}"}
+    },
+    {
+      "_id": "req_audit",
+      "_type": "request",
+      "parentId": "fld_governance",
+      "name": "Consultar auditoria sanitizada",
+      "method": "GET",
+      "url": "{{ _.base_url }}/v1/admin/audit-logs?tenant_id={{ _.tenant_id }}&limit=100",
+      "headers": [{"name": "X-Admin-Key", "value": "{{ _.admin_key }}"}]
+    },
+    {
+      "_id": "fld_contract",
+      "_type": "request_group",
+      "parentId": "wrk_chatbot_platform",
+      "name": "08 - Contrato"
+    },
+    {
+      "_id": "req_openapi",
+      "_type": "request",
+      "parentId": "fld_contract",
+      "name": "Baixar OpenAPI",
+      "method": "GET",
+      "url": "{{ _.base_url }}/openapi.json",
+      "headers": []
+    }
+  ]
+}
