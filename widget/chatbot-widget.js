@@ -114,7 +114,7 @@ class ChatbotPlatform extends HTMLElement {
   }
   async bootstrap() {
     const resume=this.resumeToken || this.readStored();
-    const data=await this.fetchJson(`${this.apiUrl}/v1/widget/bootstrap`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resume_token:resume})});
+    let data; try { data=await this.fetchJson(`${this.apiUrl}/v1/widget/bootstrap`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resume_token:resume})}); } catch(error) { if (resume && (error.status === 401 || error.status === 404)) { this.clearSession(); data=await this.fetchJson(`${this.apiUrl}/v1/widget/bootstrap`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({resume_token:null})}); } else { throw error; } }
     this.currentToken=data.token; this.resumeToken=data.resume_token; this.sessionId=data.session_id;
     try { sessionStorage.setItem(this.storageKey,data.resume_token); } catch { /* In-memory sessions remain usable. */ }
     this.setAppearance(data); return data;
